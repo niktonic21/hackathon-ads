@@ -7,11 +7,13 @@ import "@tensorflow/tfjs-react-native";
 import { fetch, decodeJpeg } from "@tensorflow/tfjs-react-native";
 import * as mobilenet from "@tensorflow-models/mobilenet";
 
-import { View } from "../components/Themed";
+import { Text, View } from "../components/Themed";
 import { RootTabScreenProps } from "../types";
 const URLS = [
   "http://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4",
   "https://24i-demo-data.s3.eu-west-1.amazonaws.com/529113/529113.m3u8",
+  "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+  "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8",
 ];
 
 export default function TabOneScreen({
@@ -21,6 +23,7 @@ export default function TabOneScreen({
   const video = React.useRef(null);
   const model = React.useRef({});
   const [status, setStatus] = React.useState({});
+  const [predictions, setPredictions] = React.useState([]);
   const [isTfReady, setIsTfReady] = React.useState({});
   const [imgUri, setImgUri] = React.useState("img");
 
@@ -33,7 +36,7 @@ export default function TabOneScreen({
     const loadModel = async () => {
       const mod = await mobilenet.load();
       model.current = mod;
-      console.log("Mobilenet Model loaded", mod);
+      console.log("Mobilenet Model loaded");
     };
 
     startTF();
@@ -41,8 +44,6 @@ export default function TabOneScreen({
   }, []);
 
   const createImage = () => {
-    console.log("aaa_captureRef", captureRef);
-
     if (!!captureRef.current && !!model.current) {
       captureRef.current.capture().then((uri) => {
         console.log("do something with ", uri);
@@ -55,14 +56,15 @@ export default function TabOneScreen({
   };
 
   const detectObjects = async (uri) => {
-    console.log("detect objects ");
+    console.log("detect objects");
     const response = await fetch(uri, {}, { isBinary: true });
     const imageDataArrayBuffer = await response.arrayBuffer();
     const imageData = new Uint8Array(imageDataArrayBuffer);
     const imageTensor = decodeJpeg(imageData);
 
     const prediction = await model.current?.classify(imageTensor);
-    console.log("predictions ", prediction);
+    setPredictions(prediction);
+    console.log("aaaa", prediction);
   };
 
   return (
@@ -73,10 +75,10 @@ export default function TabOneScreen({
             ref={video}
             style={styles.video}
             source={{
-              uri: URLS[0],
+              uri: URLS[2],
             }}
-            useNativeControls
-            resizeMode="contain"
+            useNativeControls={false}
+            resizeMode="cover"
             isLooping
             onPlaybackStatusUpdate={(status) => setStatus(() => status)}
           />
@@ -92,15 +94,27 @@ export default function TabOneScreen({
           }
         />
       </View>
-      <Image
-        style={styles.image}
-        source={{
-          uri: imgUri,
-        }}
-      />
+      <View style={styles.videoContainer}>
+        <Image
+          style={styles.video}
+          source={{
+            uri: imgUri,
+          }}
+        />
+      </View>
+
       <View style={styles.buttons}>
         <Button title={"Capture Image"} onPress={createImage} />
       </View>
+      {!!predictions.length && (
+        <View style={styles.predictionsContainer}>
+          {predictions.map(({ className, probability }) => (
+            <Text key={className} style={{ paddingTop: 5 }}>
+              {(probability * 100)?.toFixed(2)}% - {className}
+            </Text>
+          ))}
+        </View>
+      )}
     </View>
   );
 }
@@ -109,7 +123,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-start",
   },
   title: {
     fontSize: 20,
@@ -136,5 +150,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
+  },
+  predictionsContainer: {
+    borderColor: "black",
+    borderWidth: 1,
+    padding: 4,
   },
 });
