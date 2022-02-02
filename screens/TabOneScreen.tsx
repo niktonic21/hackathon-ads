@@ -91,6 +91,7 @@ export default function TabOneScreen({
       size={BannerAdSize.FULL_BANNER}
       requestOptions={{
         requestNonPersonalizedAdsOnly: true,
+        keywords: ['cars', 'audi'],
       }}
     />
       <View style={styles.buttons}>
