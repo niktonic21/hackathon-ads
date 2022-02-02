@@ -6,6 +6,7 @@ import * as tf from "@tensorflow/tfjs";
 import "@tensorflow/tfjs-react-native";
 import { fetch, decodeJpeg } from "@tensorflow/tfjs-react-native";
 import * as mobilenet from "@tensorflow-models/mobilenet";
+import { BannerAd, BannerAdSize, TestIds } from '@invertase/react-native-google-ads';
 
 import { Text, View } from "../components/Themed";
 import { RootTabScreenProps } from "../types";
@@ -85,6 +86,13 @@ export default function TabOneScreen({
           />
         </View>
       </ViewShot>
+      <BannerAd
+      unitId={TestIds.BANNER}
+      size={BannerAdSize.FULL_BANNER}
+      requestOptions={{
+        requestNonPersonalizedAdsOnly: true,
+      }}
+    />
       <View style={styles.buttons}>
         <Button
           title={status.isPlaying ? "Pause" : "Play"}

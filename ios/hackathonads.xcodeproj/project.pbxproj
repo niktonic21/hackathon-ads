@@ -152,7 +152,7 @@
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				79496ADECBE73338C1EACB11 /* [CP-User] [RNGoogleAds] Configuration */,
+				08E4A9632995014870D218D1 /* [CP-User] [RNGoogleAds] Configuration */,
 			);
 			buildRules = (
 			);
@@ -244,7 +244,7 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		79496ADECBE73338C1EACB11 /* [CP-User] [RNGoogleAds] Configuration */ = {
+		08E4A9632995014870D218D1 /* [CP-User] [RNGoogleAds] Configuration */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -337,7 +337,7 @@
 					"-lc++",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.twentyfouri.smartads;
-				PRODUCT_NAME = "hackathonads";
+				PRODUCT_NAME = hackathonads;
 				SWIFT_OBJC_BRIDGING_HEADER = "hackathonads/hackathonads-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -363,7 +363,7 @@
 					"-lc++",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.twentyfouri.smartads;
-				PRODUCT_NAME = "hackathonads";
+				PRODUCT_NAME = hackathonads;
 				SWIFT_OBJC_BRIDGING_HEADER = "hackathonads/hackathonads-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

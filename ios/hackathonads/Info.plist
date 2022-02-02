@@ -77,5 +77,7 @@
     <string>Automatic</string>
     <key>UIViewControllerBasedStatusBarAppearance</key>
     <false/>
+    <key>GADApplicationIdentifier</key>
+    <string>ca-app-pub-4218448253105079~1300005192</string>
   </dict>
 </plist>
