@@ -7,6 +7,10 @@ import "@tensorflow/tfjs-react-native";
 
 import { View } from "../components/Themed";
 import { RootTabScreenProps } from "../types";
+const URLS = [
+  "http://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4",
+  "https://24i-demo-data.s3.eu-west-1.amazonaws.com/529113/529113.m3u8",
+];
 
 export default function TabOneScreen({
   navigation,
@@ -45,7 +49,7 @@ export default function TabOneScreen({
           ref={video}
           style={styles.video}
           source={{
-            uri: "https://24i-demo-data.s3.eu-west-1.amazonaws.com/529113/529113.m3u8",
+            uri: URLS[0],
           }}
           useNativeControls
           resizeMode="contain"
