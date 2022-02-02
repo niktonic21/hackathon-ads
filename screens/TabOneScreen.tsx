@@ -4,6 +4,8 @@ import { Video } from "expo-av";
 import ViewShot from "react-native-view-shot";
 import * as tf from "@tensorflow/tfjs";
 import "@tensorflow/tfjs-react-native";
+import { fetch, decodeJpeg } from '@tensorflow/tfjs-react-native';
+import * as mobilenet from '@tensorflow-models/mobilenet';
 
 import { View } from "../components/Themed";
 import { RootTabScreenProps } from "../types";
@@ -35,9 +37,23 @@ export default function TabOneScreen({
       captureRef.current.capture().then((uri) => {
         console.log("do something with ", uri);
         setImgUri(uri);
+        detectObjects(uri);
       });
     }
   };
+
+
+  const detectObjects = async (uri) => {
+    console.log("detect objects ");
+    const model = await mobilenet.load();
+    const response = await fetch(uri, {}, { isBinary: true });
+    const imageDataArrayBuffer = await response.arrayBuffer();
+    const imageData = new Uint8Array(imageDataArrayBuffer);
+    const imageTensor = decodeJpeg(imageData);
+
+    const prediction = await model.classify(imageTensor);
+    console.log("predictions ",prediction);
+  }
 
   return (
     <View style={styles.container}>
