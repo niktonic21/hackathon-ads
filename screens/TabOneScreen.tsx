@@ -6,6 +6,13 @@ import * as tf from "@tensorflow/tfjs";
 import "@tensorflow/tfjs-react-native";
 import { fetch, decodeJpeg } from "@tensorflow/tfjs-react-native";
 import * as mobilenet from "@tensorflow-models/mobilenet";
+import {
+  AdMobBanner,
+  AdMobInterstitial,
+  PublisherBanner,
+  AdMobRewarded,
+  setTestDeviceIDAsync,
+} from 'expo-ads-admob';
 
 import { Text, View } from "../components/Themed";
 import { RootTabScreenProps } from "../types";
@@ -38,6 +45,10 @@ export default function TabOneScreen({
       model.current = mod;
       console.log("Mobilenet Model loaded");
     };
+    const setDeviceID = async () => {
+      // Set global test device ID
+      await setTestDeviceIDAsync('EMULATOR');
+    }
 
     startTF();
     loadModel();
@@ -54,6 +65,10 @@ export default function TabOneScreen({
       Alert.alert("waiting for model");
     }
   };
+
+  const bannerError = (err) => {
+    console.log(err);
+  }
 
   const detectObjects = async (uri) => {
     console.log("detect objects");
@@ -84,6 +99,11 @@ export default function TabOneScreen({
           />
         </View>
       </ViewShot>
+      <AdMobBanner
+          bannerSize="fullBanner"
+          adUnitID="ca-app-pub-3940256099942544/2934735716" // Test ID, Replace with your-admob-unit-id
+          servePersonalizedAds // true or false
+          onDidFailToReceiveAdWithError={bannerError} />
       <View style={styles.buttons}>
         <Button
           title={status.isPlaying ? "Pause" : "Play"}
@@ -102,6 +122,7 @@ export default function TabOneScreen({
           }}
         />
       </View>
+      
 
       <View style={styles.buttons}>
         <Button title={"Capture Image"} onPress={createImage} />
