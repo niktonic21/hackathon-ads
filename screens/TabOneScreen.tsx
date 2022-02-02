@@ -6,11 +6,11 @@ import * as tf from "@tensorflow/tfjs";
 import "@tensorflow/tfjs-react-native";
 import { fetch, decodeJpeg } from "@tensorflow/tfjs-react-native";
 import * as mobilenet from "@tensorflow-models/mobilenet";
+import * as cocossd from '@tensorflow-models/coco-ssd';
 
 import { View } from "../components/Themed";
 import { RootTabScreenProps } from "../types";
 const URLS = [
-  "http://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4",
   "https://24i-demo-data.s3.eu-west-1.amazonaws.com/529113/529113.m3u8",
 ];
 
@@ -19,7 +19,8 @@ export default function TabOneScreen({
 }: RootTabScreenProps<"TabOne">) {
   const captureRef = React.useRef(null);
   const video = React.useRef(null);
-  const model = React.useRef({});
+  const modelMN = React.useRef({});
+  const modelCS = React.useRef({});
   const [status, setStatus] = React.useState({});
   const [isTfReady, setIsTfReady] = React.useState({});
   const [imgUri, setImgUri] = React.useState("img");
@@ -30,27 +31,34 @@ export default function TabOneScreen({
       setIsTfReady(true);
       console.log("TfReady to use");
     };
-    const loadModel = async () => {
-      const mod = await mobilenet.load();
-      model.current = mod;
-      console.log("Mobilenet Model loaded", mod);
+    const loadModels = async () => {
+      const mn = await mobilenet.load();
+      modelMN.current = mn;
+
+      const cs = await cocossd.load();
+      modelCS.current = cs;
+      console.log("Models loaded");
     };
 
     startTF();
-    loadModel();
+    loadModels();
   }, []);
 
-  const createImage = () => {
-    console.log("aaa_captureRef", captureRef);
+  const isDetectionReady = () => {
+    return !!captureRef.current && !!modelMN.current && isTfReady && !!modelCS.current
+  }
 
-    if (!!captureRef.current && !!model.current) {
+  const createImage = () => {
+    //console.log("aaa_captureRef", captureRef);
+
+    if (isDetectionReady()) {
       captureRef.current.capture().then((uri) => {
         console.log("do something with ", uri);
         setImgUri(uri);
         detectObjects(uri);
       });
     } else {
-      Alert.alert("waiting for model");
+      Alert.alert("waiting for models");
     }
   };
 
@@ -61,8 +69,10 @@ export default function TabOneScreen({
     const imageData = new Uint8Array(imageDataArrayBuffer);
     const imageTensor = decodeJpeg(imageData);
 
-    const prediction = await model.current?.classify(imageTensor);
-    console.log("predictions ", prediction);
+    const predictionMN = await modelMN.current?.classify(imageTensor);
+    const predictionCS = await modelCS.current?.detect(imageTensor);
+    console.log("predictions MN ", predictionMN);
+    console.log("predictions CS ", predictionCS);
   };
 
   return (
@@ -99,7 +109,7 @@ export default function TabOneScreen({
         }}
       />
       <View style={styles.buttons}>
-        <Button title={"Capture Image"} onPress={createImage} />
+        <Button title={"Capture Image"} onPress={createImage} disabled={!isDetectionReady()}/>
       </View>
     </View>
   );
