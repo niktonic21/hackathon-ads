@@ -9,7 +9,7 @@ import * as mobilenet from "@tensorflow-models/mobilenet";
 
 import { Text, View } from "../components/Themed";
 import { RootTabScreenProps } from "../types";
-const URLS = [
+export const URLS = [
   "http://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4",
   "https://24i-demo-data.s3.eu-west-1.amazonaws.com/529113/529113.m3u8",
   "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",

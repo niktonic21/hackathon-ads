@@ -1,18 +1,44 @@
-import { StatusBar } from 'expo-status-bar';
-import { Platform, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet } from "react-native";
+import { Video } from "expo-av";
+import { View } from "../components/Themed";
+import { URLS } from "./TabOneScreen";
+import { FontAwesome } from "@expo/vector-icons";
+import useColorScheme from "../hooks/useColorScheme";
+import { RootTabScreenProps } from "../types";
 
-import EditScreenInfo from '../components/EditScreenInfo';
-import { Text, View } from '../components/Themed';
+export default function ModalScreen({
+  navigation,
+}: RootTabScreenProps<"TabOne">) {
+  const colorScheme = useColorScheme();
 
-export default function ModalScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Modal</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="/screens/ModalScreen.tsx" />
-
-      {/* Use a light status bar on iOS to account for the black space above the modal */}
-      <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
+      <Video
+        style={styles.video}
+        source={{
+          uri: URLS[2],
+        }}
+        useNativeControls={false}
+        resizeMode="contain"
+        shouldPlay
+        isLooping
+      />
+      <Pressable
+        onPress={() => navigation.goBack()}
+        style={({ pressed }) => ({
+          opacity: pressed ? 0.5 : 1,
+          position: "absolute",
+          top: 20,
+          left: 30,
+        })}
+      >
+        <FontAwesome
+          name="arrow-circle-left"
+          size={35}
+          color={"grey"}
+          style={{ marginRight: 15 }}
+        />
+      </Pressable>
     </View>
   );
 }
@@ -20,16 +46,21 @@ export default function ModalScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "black",
+  },
+  video: {
+    flex: 1,
+    width: "100%",
   },
   title: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   separator: {
     marginVertical: 30,
     height: 1,
-    width: '80%',
+    width: "80%",
   },
 });

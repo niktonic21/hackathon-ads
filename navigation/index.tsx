@@ -61,7 +61,13 @@ function RootNavigator() {
         component={NotFoundScreen}
         options={{ title: "Oops!" }}
       />
-      <Stack.Group screenOptions={{ presentation: "modal" }}>
+      <Stack.Group
+        screenOptions={{
+          presentation: "fullScreenModal",
+          headerShown: false,
+          orientation: "landscape",
+        }}
+      >
         <Stack.Screen name="Modal" component={ModalScreen} />
       </Stack.Group>
     </Stack.Navigator>
@@ -98,8 +104,8 @@ function BottomTabNavigator() {
               })}
             >
               <FontAwesome
-                name="info-circle"
-                size={25}
+                name="play-circle"
+                size={30}
                 color={Colors[colorScheme].text}
                 style={{ marginRight: 15 }}
               />
@@ -107,7 +113,7 @@ function BottomTabNavigator() {
           ),
         })}
       />
-      <BottomTab.Screen
+      {/* <BottomTab.Screen
         name="TabTwo"
         component={TabTwoScreen}
         options={{
@@ -116,7 +122,7 @@ function BottomTabNavigator() {
             <TabBarIcon name="play-circle" color={color} />
           ),
         }}
-      />
+      /> */}
     </BottomTab.Navigator>
   );
 }
