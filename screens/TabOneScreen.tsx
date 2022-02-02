@@ -1,15 +1,77 @@
-import { StyleSheet } from 'react-native';
+import * as React from "react";
+import { StyleSheet, Button, Image } from "react-native";
+import { Video } from "expo-av";
+import ViewShot from "react-native-view-shot";
+import * as tf from "@tensorflow/tfjs";
+import "@tensorflow/tfjs-react-native";
 
-import EditScreenInfo from '../components/EditScreenInfo';
-import { Text, View } from '../components/Themed';
-import { RootTabScreenProps } from '../types';
+import { View } from "../components/Themed";
+import { RootTabScreenProps } from "../types";
 
-export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'>) {
+export default function TabOneScreen({
+  navigation,
+}: RootTabScreenProps<"TabOne">) {
+  const captureRef = React.useRef({});
+  const video = React.useRef(null);
+  const [status, setStatus] = React.useState({});
+  const [isTfReady, setIsTfReady] = React.useState({});
+  const [imgUri, setImgUri] = React.useState("img");
+
+  React.useEffect(() => {
+    const startTF = async () => {
+      await tf.ready();
+      setIsTfReady(true);
+      console.log("TfReady to use");
+    };
+    startTF();
+  }, []);
+
+  const createImage = () => {
+    if (!!captureRef.current) {
+      captureRef.current.capture().then((uri) => {
+        console.log("do something with ", uri);
+        setImgUri(uri);
+      });
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tab One</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="/screens/TabOneScreen.tsx" />
+      <ViewShot
+        ref={(ref) => (captureRef.current = ref)}
+        options={{ format: "jpg", quality: 1 }}
+      >
+        <Video
+          ref={video}
+          style={styles.video}
+          source={{
+            uri: "https://24i-demo-data.s3.eu-west-1.amazonaws.com/529113/529113.m3u8",
+          }}
+          useNativeControls
+          resizeMode="contain"
+          isLooping
+          onPlaybackStatusUpdate={(status) => setStatus(() => status)}
+        />
+      </ViewShot>
+      <View style={styles.buttons}>
+        <Button
+          title={status.isPlaying ? "Pause" : "Play"}
+          onPress={() =>
+            status.isPlaying
+              ? video.current?.pauseAsync()
+              : video.current?.playAsync()
+          }
+        />
+      </View>
+      <Image
+        style={styles.image}
+        source={{
+          uri: imgUri,
+        }}
+      />
+      <View style={styles.buttons}>
+        <Button title={"Capture Image"} onPress={createImage} />
+      </View>
     </View>
   );
 }
@@ -17,16 +79,31 @@ export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   title: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   separator: {
     marginVertical: 30,
     height: 1,
-    width: '80%',
+    width: "80%",
+  },
+  video: {
+    alignSelf: "center",
+    width: 320,
+    height: 200,
+  },
+  image: {
+    alignSelf: "center",
+    width: 320,
+    height: 200,
+  },
+  buttons: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
