@@ -1,11 +1,11 @@
 import * as React from "react";
-import { StyleSheet, Button, Image } from "react-native";
+import { StyleSheet, Button, Image, Alert } from "react-native";
 import { Video } from "expo-av";
 import ViewShot from "react-native-view-shot";
 import * as tf from "@tensorflow/tfjs";
 import "@tensorflow/tfjs-react-native";
-import { fetch, decodeJpeg } from '@tensorflow/tfjs-react-native';
-import * as mobilenet from '@tensorflow-models/mobilenet';
+import { fetch, decodeJpeg } from "@tensorflow/tfjs-react-native";
+import * as mobilenet from "@tensorflow-models/mobilenet";
 
 import { View } from "../components/Themed";
 import { RootTabScreenProps } from "../types";
@@ -17,8 +17,9 @@ const URLS = [
 export default function TabOneScreen({
   navigation,
 }: RootTabScreenProps<"TabOne">) {
-  const captureRef = React.useRef({});
+  const captureRef = React.useRef(null);
   const video = React.useRef(null);
+  const model = React.useRef({});
   const [status, setStatus] = React.useState({});
   const [isTfReady, setIsTfReady] = React.useState({});
   const [imgUri, setImgUri] = React.useState("img");
@@ -29,49 +30,57 @@ export default function TabOneScreen({
       setIsTfReady(true);
       console.log("TfReady to use");
     };
+    const loadModel = async () => {
+      const mod = await mobilenet.load();
+      model.current = mod;
+      console.log("Mobilenet Model loaded", mod);
+    };
+
     startTF();
+    loadModel();
   }, []);
 
   const createImage = () => {
-    if (!!captureRef.current) {
+    console.log("aaa_captureRef", captureRef);
+
+    if (!!captureRef.current && !!model.current) {
       captureRef.current.capture().then((uri) => {
         console.log("do something with ", uri);
         setImgUri(uri);
         detectObjects(uri);
       });
+    } else {
+      Alert.alert("waiting for model");
     }
   };
 
-
   const detectObjects = async (uri) => {
     console.log("detect objects ");
-    const model = await mobilenet.load();
     const response = await fetch(uri, {}, { isBinary: true });
     const imageDataArrayBuffer = await response.arrayBuffer();
     const imageData = new Uint8Array(imageDataArrayBuffer);
     const imageTensor = decodeJpeg(imageData);
 
-    const prediction = await model.classify(imageTensor);
-    console.log("predictions ",prediction);
-  }
+    const prediction = await model.current?.classify(imageTensor);
+    console.log("predictions ", prediction);
+  };
 
   return (
     <View style={styles.container}>
-      <ViewShot
-        ref={(ref) => (captureRef.current = ref)}
-        options={{ format: "jpg", quality: 1 }}
-      >
-        <Video
-          ref={video}
-          style={styles.video}
-          source={{
-            uri: URLS[0],
-          }}
-          useNativeControls
-          resizeMode="contain"
-          isLooping
-          onPlaybackStatusUpdate={(status) => setStatus(() => status)}
-        />
+      <ViewShot ref={captureRef} options={{ format: "jpg", quality: 1 }}>
+        <View style={styles.videoContainer}>
+          <Video
+            ref={video}
+            style={styles.video}
+            source={{
+              uri: URLS[0],
+            }}
+            useNativeControls
+            resizeMode="contain"
+            isLooping
+            onPlaybackStatusUpdate={(status) => setStatus(() => status)}
+          />
+        </View>
       </ViewShot>
       <View style={styles.buttons}>
         <Button
@@ -111,10 +120,12 @@ const styles = StyleSheet.create({
     height: 1,
     width: "80%",
   },
+  videoContainer: {
+    marginHorizontal: 20,
+  },
   video: {
-    alignSelf: "center",
-    width: 320,
-    height: 200,
+    aspectRatio: 16 / 9,
+    width: "100%",
   },
   image: {
     alignSelf: "center",
