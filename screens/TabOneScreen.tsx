@@ -14,6 +14,7 @@ const URLS = [
   "https://24i-demo-data.s3.eu-west-1.amazonaws.com/529113/529113.m3u8",
   "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
   "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8",
+  "https://s1-vod-test.secure2.footprint.net/hlslive/account=ObckAuTKb4mG/livestream=ocvtpagkftgw/livestream=ocvtpagkftgw.isml/ocvtpagkftgw.m3u8",
 ];
 
 export default function TabOneScreen({
@@ -75,7 +76,7 @@ export default function TabOneScreen({
             ref={video}
             style={styles.video}
             source={{
-              uri: URLS[2],
+              uri: URLS[4],
             }}
             useNativeControls={false}
             resizeMode="cover"

@@ -19,16 +19,22 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.twentyfouri.smartads"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.twentyfouri.smartads"
     },
     "web": {
       "favicon": "./assets/images/favicon.png"
+    },
+    "react-native-google-ads": {
+      "android_app_id": "ca-app-pub-4218448253105079~1216244718",
+      "ios_app_id": "ca-app-pub-4218448253105079~1300005192"
     }
   }
 }
