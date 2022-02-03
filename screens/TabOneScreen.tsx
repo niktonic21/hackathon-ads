@@ -1,11 +1,14 @@
 import * as React from "react";
-import { StyleSheet, Button, Image, Alert } from "react-native";
+import { StyleSheet, Button, Image, Alert, ScrollView } from "react-native";
+import Config from "react-native-config";
+import { useQuery } from 'react-query'
 import { Video } from "expo-av";
 import ViewShot from "react-native-view-shot";
 import * as tf from "@tensorflow/tfjs";
 import "@tensorflow/tfjs-react-native";
 import { fetch, decodeJpeg } from "@tensorflow/tfjs-react-native";
 import * as mobilenet from "@tensorflow-models/mobilenet";
+import axios from "axios";
 
 import { Text, View } from "../components/Themed";
 import { RootTabScreenProps } from "../types";
@@ -14,6 +17,9 @@ export const URLS = [
   "https://24i-demo-data.s3.eu-west-1.amazonaws.com/529113/529113.m3u8",
   "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
   "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8",
+  "https://s1-vod-test.secure2.footprint.net/hlslive/account=ObckAuTKb4mG/livestream=ocvtpagkftgw/livestream=ocvtpagkftgw.isml/ocvtpagkftgw.m3u8",
+  "https://nmxapplive.akamaized.net/hls/live/529965/Live_1/index.m3u8",
+  "https://nmxapplive.akamaized.net/hls/live/529965/Live_1/index_404.m3u8",
 ];
 
 export default function TabOneScreen({
@@ -64,9 +70,29 @@ export default function TabOneScreen({
 
     const prediction = await model.current?.classify(imageTensor);
     setPredictions(prediction);
-    console.log("aaaa", prediction);
+    extractKeyword(prediction);
+    console.log("prediction", prediction);
   };
 
+  const extractKeyword = async (prediction) => {
+    if(!!prediction.length){
+      const firstPrediction = prediction[0];
+      console.log("extractKeyword fp", firstPrediction);
+      //if(firstPrediction.probability > 0.5){
+        const stringArray = firstPrediction.className.split(/(\s+)/);
+        console.log("extractKeyword", stringArray);
+        const ads = await getAdvertisements(stringArray[0]);
+        console.log("ads result", ads);
+      //}
+    }
+  }
+
+  const getAdvertisements = async (keyword: string) => {
+    console.log("getAdvertisements", `https://serpapi.com/search.json?q=${keyword}+%20buy&hl=en`);
+    const { data } = await axios.get(`https://serpapi.com/search.json?q=${keyword}+%20buy&hl=en&api_key=${Config.SERAPI_KEY}`);
+    return data;
+  };
+  
   return (
     <View style={styles.container}>
       <ViewShot ref={captureRef} options={{ format: "jpg", quality: 1 }}>
@@ -75,7 +101,7 @@ export default function TabOneScreen({
             ref={video}
             style={styles.video}
             source={{
-              uri: URLS[2],
+              uri: URLS[6],
             }}
             useNativeControls={false}
             resizeMode="cover"
@@ -94,19 +120,20 @@ export default function TabOneScreen({
           }
         />
       </View>
-      <View style={styles.videoContainer}>
+      {/* <View style={styles.videoContainer}>
         <Image
           style={styles.video}
           source={{
             uri: imgUri,
           }}
         />
-      </View>
+      </View> */}
 
       <View style={styles.buttons}>
         <Button title={"Capture Image"} onPress={createImage} />
       </View>
       {!!predictions.length && (
+        <ScrollView>
         <View style={styles.predictionsContainer}>
           {predictions.map(({ className, probability }) => (
             <Text key={className} style={{ paddingTop: 5 }}>
@@ -114,6 +141,7 @@ export default function TabOneScreen({
             </Text>
           ))}
         </View>
+        </ScrollView>
       )}
     </View>
   );
@@ -142,6 +170,11 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   image: {
+    alignSelf: "center",
+    width: 320,
+    height: 200,
+  },
+  imageAd: {
     alignSelf: "center",
     width: 320,
     height: 200,
