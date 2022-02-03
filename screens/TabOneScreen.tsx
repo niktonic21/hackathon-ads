@@ -1,17 +1,25 @@
 import * as React from "react";
-import { StyleSheet, Button, Image, Alert, ScrollView } from "react-native";
-import Config from "react-native-config";
-import { useQuery } from 'react-query'
+import {
+  StyleSheet,
+  Button,
+  Image,
+  Alert,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
 import { Video } from "expo-av";
 import ViewShot from "react-native-view-shot";
+import * as WebBrowser from "expo-web-browser";
 import * as tf from "@tensorflow/tfjs";
 import "@tensorflow/tfjs-react-native";
 import { fetch, decodeJpeg } from "@tensorflow/tfjs-react-native";
 import * as mobilenet from "@tensorflow-models/mobilenet";
-import axios from "axios";
 
 import { Text, View } from "../components/Themed";
 import { RootTabScreenProps } from "../types";
+import useAdvertQuery from "../hooks/useAdvertQuery";
+import favIcon from "../assets/images/favicon.png";
+
 export const URLS = [
   "http://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4",
   "https://24i-demo-data.s3.eu-west-1.amazonaws.com/529113/529113.m3u8",
@@ -30,8 +38,11 @@ export default function TabOneScreen({
   const model = React.useRef({});
   const [status, setStatus] = React.useState({});
   const [predictions, setPredictions] = React.useState([]);
+  const [adsKeyword, setAdsKeyword] = React.useState("");
   const [isTfReady, setIsTfReady] = React.useState({});
-  const [imgUri, setImgUri] = React.useState("img");
+  const [imgUri, setImgUri] = React.useState(favIcon);
+
+  const { data } = useAdvertQuery(adsKeyword);
 
   React.useEffect(() => {
     const startTF = async () => {
@@ -48,6 +59,20 @@ export default function TabOneScreen({
     startTF();
     loadModel();
   }, []);
+
+  React.useEffect(() => {
+    let timeout = null;
+    console.log("aaaa____", data);
+
+    if (!!data?.ads) {
+      timeout = setTimeout(() => {
+        // setAdsKeyword("");
+      }, 100000);
+    }
+    return () => {
+      !!timeout && clearTimeout(timeout);
+    };
+  }, [data]);
 
   const createImage = () => {
     if (!!captureRef.current && !!model.current) {
@@ -75,26 +100,28 @@ export default function TabOneScreen({
   };
 
   const extractKeyword = async (prediction) => {
-    if(!!prediction.length){
+    if (!!prediction.length) {
       const firstPrediction = prediction[0];
       console.log("extractKeyword fp", firstPrediction);
       //if(firstPrediction.probability > 0.5){
-        const stringArray = firstPrediction.className.split(/(\s+)/);
-        console.log("extractKeyword", stringArray);
-        const ads = await getAdvertisements(stringArray[0]);
-        console.log("ads result", ads);
+      const stringArray = firstPrediction.className.split(/(\s+)/);
+      console.log("extractKeyword", stringArray);
+      setAdsKeyword(stringArray[0]);
       //}
     }
-  }
-
-  const getAdvertisements = async (keyword: string) => {
-    console.log("getAdvertisements", `https://serpapi.com/search.json?q=${keyword}+%20buy&hl=en`);
-    const { data } = await axios.get(`https://serpapi.com/search.json?q=${keyword}+%20buy&hl=en&api_key=${Config.SERAPI_KEY}`);
-    return data;
   };
-  
+
+  const handleAdsPress = (link: string) => {
+    WebBrowser.openBrowserAsync(link);
+  };
+
+  console.log("aaaA____DATA", data);
+
   return (
-    <View style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contentContainerStyle}
+    >
       <ViewShot ref={captureRef} options={{ format: "jpg", quality: 1 }}>
         <View style={styles.videoContainer}>
           <Video
@@ -110,6 +137,19 @@ export default function TabOneScreen({
           />
         </View>
       </ViewShot>
+      {!!data?.ads && (
+        <TouchableOpacity
+          style={styles.adsContainer}
+          onPress={() => handleAdsPress(data.ads[0].link)}
+        >
+          <Text numberOfLines={2} style={styles.adsText}>
+            {data.ads[0].title}
+          </Text>
+          {/* <Text style={{ flex: 1, padding: 3, fontSize: 12 }}>
+            {data.ads[0].description}
+          </Text> */}
+        </TouchableOpacity>
+      )}
       <View style={styles.buttons}>
         <Button
           title={status.isPlaying ? "Pause" : "Play"}
@@ -120,20 +160,22 @@ export default function TabOneScreen({
           }
         />
       </View>
-      {/* <View style={styles.videoContainer}>
+      <View style={styles.videoContainer}>
         <Image
           style={styles.video}
-          source={{
-            uri: imgUri,
-          }}
+          source={
+            typeof imgUri === "number"
+              ? imgUri
+              : {
+                  uri: imgUri,
+                }
+          }
         />
-      </View> */}
-
+      </View>
       <View style={styles.buttons}>
         <Button title={"Capture Image"} onPress={createImage} />
       </View>
       {!!predictions.length && (
-        <ScrollView>
         <View style={styles.predictionsContainer}>
           {predictions.map(({ className, probability }) => (
             <Text key={className} style={{ paddingTop: 5 }}>
@@ -141,15 +183,18 @@ export default function TabOneScreen({
             </Text>
           ))}
         </View>
-        </ScrollView>
       )}
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "white",
+    paddingVertical: 15,
+  },
+  contentContainerStyle: {
     alignItems: "center",
     justifyContent: "flex-start",
   },
@@ -168,6 +213,7 @@ const styles = StyleSheet.create({
   video: {
     aspectRatio: 16 / 9,
     width: "100%",
+    minHeight: 190,
   },
   image: {
     alignSelf: "center",
@@ -189,4 +235,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 4,
   },
+  adsContainer: {
+    flex: 1,
+    alignSelf: "center",
+    alignItems: "center",
+    borderColor: "grey",
+    borderWidth: 1,
+    backgroundColor: "rgba(255,255,255,0.5)",
+    width: 200,
+    height: 40,
+  },
+  adsText: { flex: 1, padding: 3, fontSize: 12, textAlign: "center" },
 });
