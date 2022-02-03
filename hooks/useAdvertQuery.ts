@@ -24,4 +24,24 @@ const useAdvertQuery = (keyword: string) => {
   });
 };
 
+export const parseAds = (data) => {
+  if (
+    !!data.shopping_results &&
+    data.shopping_results.length > 0
+    // && data.shopping_results[0].block_position == "top"
+  ) {
+    console.log("parseAds shop list", data.shopping_results[0]);
+    return data.shopping_results[0];
+  } else if (
+    !!data.ads &&
+    data.ads.length > 0 //&& data.ads[0].block_position == "top"
+  ) {
+    console.log("parseAds ads", data.ads[0]);
+    return data.ads[0];
+  } else {
+    console.log("No suitable results");
+    return null;
+  }
+};
+
 export default useAdvertQuery;

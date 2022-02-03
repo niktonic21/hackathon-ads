@@ -17,8 +17,7 @@ import * as mobilenet from "@tensorflow-models/mobilenet";
 
 import { Text, View } from "../components/Themed";
 import { RootTabScreenProps } from "../types";
-import useAdvertQuery from "../hooks/useAdvertQuery";
-import favIcon from "../assets/images/favicon.png";
+import useAdvertQuery, { parseAds } from "../hooks/useAdvertQuery";
 
 export const URLS = [
   "http://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4",
@@ -39,8 +38,9 @@ export default function TabOneScreen({
   const [status, setStatus] = React.useState({});
   const [predictions, setPredictions] = React.useState([]);
   const [adsKeyword, setAdsKeyword] = React.useState("");
+  const [adsData, setAdsData] = React.useState("");
   const [isTfReady, setIsTfReady] = React.useState({});
-  const [imgUri, setImgUri] = React.useState(favIcon);
+  const [imgUri, setImgUri] = React.useState("");
 
   const { data } = useAdvertQuery(adsKeyword);
 
@@ -62,13 +62,13 @@ export default function TabOneScreen({
 
   React.useEffect(() => {
     let timeout = null;
-    console.log("aaaa____", data);
 
-    if (!!data) {
-      parseAds(data)
-      timeout = setTimeout(() => {
-        // setAdsKeyword("");
-      }, 100000);
+    if (data && Object.keys(data).length !== 0) {
+      const parsedData = parseAds(data);
+      console.log("aaaa____parsedData", parsedData);
+      if (parsedData) {
+        setAdsData(parsedData);
+      }
     }
     return () => {
       !!timeout && clearTimeout(timeout);
@@ -104,9 +104,9 @@ export default function TabOneScreen({
     if (!!prediction.length) {
       const firstPrediction = prediction[0];
       console.log("extractKeyword fp", firstPrediction);
-      if(firstPrediction.probability > 0.4){
-        const stringArray = firstPrediction.className.split(',');
-        const preparedKeyword = encodeURI(stringArray[0].trim())
+      if (firstPrediction.probability > 0.1) {
+        const stringArray = firstPrediction.className.split(",");
+        const preparedKeyword = encodeURI(stringArray[0].trim());
         console.log("extractKeyword", preparedKeyword);
         setAdsKeyword(preparedKeyword);
       }
@@ -117,16 +117,6 @@ export default function TabOneScreen({
     WebBrowser.openBrowserAsync(link);
   };
 
-  const parseAds = (data) => {
-    if( !!data.shopping_results && data.shopping_results.length > 0 && data.shopping_results[0].block_position == 'top') {
-       console.log("parseAds ads", data.ads[0]);
-    }else if ( !!data.ads && data.ads.length > 0 && data.ads[0].block_position == 'top') {
-      console.log("parseAds shop list", data.shopping_results[0]);
-    }else{
-      console.log("No suitable results");
-    }
-  }
-  
   return (
     <ScrollView
       style={styles.container}
@@ -147,17 +137,20 @@ export default function TabOneScreen({
           />
         </View>
       </ViewShot>
-      {!!data?.ads && (
+      {!!adsData && (
         <TouchableOpacity
           style={styles.adsContainer}
-          onPress={() => handleAdsPress(data.ads[0].link)}
+          onPress={() => handleAdsPress(adsData.link)}
         >
+          {!!adsData.thumbnail && (
+            <Image
+              source={{ uri: adsData.thumbnail }}
+              style={{ width: 40, height: 40, marginRight: 4 }}
+            />
+          )}
           <Text numberOfLines={2} style={styles.adsText}>
-            {data.ads[0].title}
+            {adsData.title}
           </Text>
-          {/* <Text style={{ flex: 1, padding: 3, fontSize: 12 }}>
-            {data.ads[0].description}
-          </Text> */}
         </TouchableOpacity>
       )}
       <View style={styles.buttons}>
@@ -249,11 +242,17 @@ const styles = StyleSheet.create({
     flex: 1,
     alignSelf: "center",
     alignItems: "center",
+    flexDirection: "row",
     borderColor: "grey",
     borderWidth: 1,
-    backgroundColor: "rgba(255,255,255,0.5)",
+    backgroundColor: "rgba(128,128,128, 0.5)",
     width: 200,
     height: 40,
   },
-  adsText: { flex: 1, padding: 3, fontSize: 12, textAlign: "center" },
+  adsText: {
+    flex: 1,
+    padding: 3,
+    fontSize: 11,
+    textAlign: "left",
+  },
 });
