@@ -64,7 +64,8 @@ export default function TabOneScreen({
     let timeout = null;
     console.log("aaaa____", data);
 
-    if (!!data?.ads) {
+    if (!!data) {
+      parseAds(data)
       timeout = setTimeout(() => {
         // setAdsKeyword("");
       }, 100000);
@@ -103,11 +104,12 @@ export default function TabOneScreen({
     if (!!prediction.length) {
       const firstPrediction = prediction[0];
       console.log("extractKeyword fp", firstPrediction);
-      //if(firstPrediction.probability > 0.5){
-      const stringArray = firstPrediction.className.split(/(\s+)/);
-      console.log("extractKeyword", stringArray);
-      setAdsKeyword(stringArray[0]);
-      //}
+      if(firstPrediction.probability > 0.4){
+        const stringArray = firstPrediction.className.split(',');
+        const preparedKeyword = encodeURI(stringArray[0].trim())
+        console.log("extractKeyword", preparedKeyword);
+        setAdsKeyword(preparedKeyword);
+      }
     }
   };
 
@@ -115,8 +117,16 @@ export default function TabOneScreen({
     WebBrowser.openBrowserAsync(link);
   };
 
-  console.log("aaaA____DATA", data);
-
+  const parseAds = (data) => {
+    if( !!data.shopping_results && data.shopping_results.length > 0 && data.shopping_results[0].block_position == 'top') {
+       console.log("parseAds ads", data.ads[0]);
+    }else if ( !!data.ads && data.ads.length > 0 && data.ads[0].block_position == 'top') {
+      console.log("parseAds shop list", data.shopping_results[0]);
+    }else{
+      console.log("No suitable results");
+    }
+  }
+  
   return (
     <ScrollView
       style={styles.container}
