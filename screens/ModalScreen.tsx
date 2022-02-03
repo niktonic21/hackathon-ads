@@ -29,12 +29,12 @@ export default function ModalScreen({
     const startTF = async () => {
       await tf.ready();
       setIsTfReady(true);
-      console.log("TfReady to use");
+      // console.log("TfReady to use");
     };
     const loadModel = async () => {
       const mod = await mobilenet.load();
       model.current = mod;
-      console.log("Mobilenet Model loaded");
+      // console.log("Mobilenet Model loaded");
     };
 
     startTF();
@@ -45,7 +45,7 @@ export default function ModalScreen({
     const createImage = () => {
       if (!!captureRef.current && !!model.current) {
         captureRef.current.capture().then((uri) => {
-          console.log("do something with ", uri);
+          // console.log("do something with ", uri);
           detectObjects(uri);
         });
       } else {
@@ -78,7 +78,7 @@ export default function ModalScreen({
   }, [data]);
 
   const detectObjects = async (uri) => {
-    console.log("detect objects");
+    // console.log("detect objects");
     const response = await fetch(uri, {}, { isBinary: true });
     const imageDataArrayBuffer = await response.arrayBuffer();
     const imageData = new Uint8Array(imageDataArrayBuffer);
@@ -86,13 +86,13 @@ export default function ModalScreen({
 
     const prediction = await model.current?.classify(imageTensor);
     extractKeyword(prediction);
-    console.log("prediction", prediction);
+    // console.log("prediction", prediction);
   };
 
   const extractKeyword = async (prediction) => {
     if (!!prediction.length) {
       const firstPrediction = prediction[0];
-      console.log("extractKeyword fp", firstPrediction);
+      // console.log("extractKeyword fp", firstPrediction);
       if (firstPrediction.probability > 0.1) {
         const stringArray = firstPrediction.className.split(",");
         const preparedKeyword = encodeURI(stringArray[0].trim());
